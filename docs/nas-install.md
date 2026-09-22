@@ -151,6 +151,21 @@ docker run -d --name ray-watch \
 > **Sign in first.** Watch mode uses the same account sign-in as the dashboard (stored in the `ray-config` volume), so sign in once via the dashboard before relying on it.
 > **Want it to translate too, or re-time?** Add `--watch-tasks` to the `watch` command with a comma-separated list from `create` (make subtitles, the default), `translate`, `sync` (re-time), `submerge` - for example `watch /media --lang nl --watch-tasks create,translate`.
 
+### Language codes (and regional variants)
+
+Use a language code such as `en`, `nl`, `de`, `ja`. For a **specific regional variant**, use its tagged code (case and `-`/`_` don't matter):
+
+| Variant | Code | | Variant | Code |
+|---|---|---|---|---|
+| Portuguese (Brazil) | `pt-BR` | | Spanish (Latin America) | `es-419` |
+| Portuguese (Portugal) | `pt-PT` | | Spanish (Spain) | `es-ES` |
+| English (US) | `en-US` | | French (Canada) | `fr-CA` |
+| English (UK) | `en-GB` | | French (France) | `fr-FR` |
+| Chinese (Simplified) | `zh-Hans` | | Chinese (Traditional) | `zh-Hant` |
+| Japanese (Romaji) | `ja-Latn` | | | |
+
+So Brazilian Portuguese is `RAY_WATCH_LANGS: "pt-BR"` (or `--lang pt-BR`) - plain `pt` gives generic Portuguese. On the **dashboard** you don't need codes; you pick the name (e.g. "Portuguese (Brazil)") from the language menu.
+
 ---
 
 ## Where your data lives (and what to keep)

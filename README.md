@@ -1,19 +1,19 @@
 # Ray headless
 
-Run **Ray's subtitle & transcription engine** as a server — same as the desktop app, no GUI, driven by a `/v4` Developer API (`/v1` is a permanent alias) plus a built-in web dashboard. Runs as a **Docker container** or a **standalone CLI** (`ray-server` + `ray-cli`). Perfect for a home server, NAS, or media library.
+Run **Ray's subtitle & transcription engine** as a server - same as the desktop app, no GUI, driven by a `/v4` Developer API (`/v1` is a permanent alias) plus a built-in web dashboard. Runs as a **Docker container** or a **standalone CLI** (`ray-server` + `ray-cli`). Perfect for a home server, NAS, or media library.
 
-- 🐳 **Docker:** [`techspecs/ray`](https://hub.docker.com/r/techspecs/ray) — `cpu` / `cuda` / `vulkan`
+- 🐳 **Docker:** [`techspecs/ray`](https://hub.docker.com/r/techspecs/ray) - `cpu` / `cuda` / `vulkan`
 - 💻 **CLI:** one-line installer · Homebrew · Scoop · winget · direct download
 - 📟 **On a NAS?** Follow the step-by-step [**NAS install guide**](docs/nas-install.md) (Synology / Unraid / QNAP).
 - 🌐 **Site:** https://rayplayer.com  ·  🐛 **Issues:** [Issues tab](../../issues)
 
-> **Beta** — early public release. Please try it and open an issue if something breaks.
+> **Beta** - early public release. Please try it and open an issue if something breaks.
 
 ---
 
 ## Get running in 3 steps
 
-No GPU required — this uses the `cpu` image, which runs on any machine with Docker. (Want it faster on a GPU box? See [GPU acceleration](#gpu-acceleration).)
+No GPU required - this uses the `cpu` image, which runs on any machine with Docker. (Want it faster on a GPU box? See [GPU acceleration](#gpu-acceleration).)
 
 **1. Start the server:**
 
@@ -41,7 +41,7 @@ http://SERVER-IP:8787/
 
 Paste the key, sign in to your Ray account, and drag in a video. Done.
 
-> Replace `SERVER-IP` with the machine's address — `localhost` if it's your own computer, or your server/NAS IP like `192.168.1.50`.
+> Replace `SERVER-IP` with the machine's address - `localhost` if it's your own computer, or your server/NAS IP like `192.168.1.50`.
 > The first job downloads the models it needs (a few GB) into the `ray-models` volume; every run after that starts instantly.
 
 ---
@@ -151,8 +151,8 @@ Grab a bundle from the [Releases](../../releases) page (Linux `.tar.gz` / `.deb`
 
 - **Your seat:** one container = one seat. Sign in from the dashboard, or set `RAY_ACCOUNT_EMAIL` + `RAY_ACCOUNT_LICENSE_KEY`.
 - **Keep your volumes:** `ray-config` holds your sign-in; `ray-models` holds the downloaded models. Deleting them means re-logging-in / re-downloading.
-- **Access from other devices:** `RAY_DEVAPI_EXPOSE=1` lets other machines on your network reach it (an API key is required — the server creates one on first boot and prints it to the log).
-- **TLS:** the server speaks plain HTTP on 8787 — put it behind a reverse proxy (Caddy / nginx / Traefik) for HTTPS.
+- **Access from other devices:** `RAY_DEVAPI_EXPOSE=1` lets other machines on your network reach it (an API key is required - the server creates one on first boot and prints it to the log).
+- **TLS:** the server speaks plain HTTP on 8787 - put it behind a reverse proxy (Caddy / nginx / Traefik) for HTTPS.
 - **Telemetry:** on by default; set `RAY_TELEMETRY=off` to disable.
 - **Full container reference:** [docs/docker.md](docs/docker.md).
 - **License:** Ray is proprietary software. © 2026 TechSpecs. All rights reserved. This repository holds distribution manifests and documentation, not source code.

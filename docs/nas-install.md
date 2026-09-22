@@ -1,11 +1,11 @@
-# Ray headless on a NAS — step by step
+# Ray headless on a NAS - step by step
 
 A plain-English guide to running Ray on a NAS (Synology, QNAP, Unraid, TrueNAS) or any always-on box. If you can install an app on your NAS, you can do this. No prior Docker knowledge needed.
 
 ## What you'll need
 
 - A NAS or server that can run **Docker** (containers). Most modern NAS boxes can.
-- About **5–10 GB of free space** for the models Ray downloads the first time.
+- About **5-10 GB of free space** for the models Ray downloads the first time.
 - Your **Ray account** (the same sign-in you use in the desktop app).
 - Your NAS's **IP address** on your network (e.g. `192.168.1.50`). You'll open `http://THAT-IP:8787/` in a browser.
 
@@ -13,7 +13,7 @@ A plain-English guide to running Ray on a NAS (Synology, QNAP, Unraid, TrueNAS) 
 
 ---
 
-## The easy way — Docker Compose (works on any NAS)
+## The easy way - Docker Compose (works on any NAS)
 
 This is the most reliable method and it's the same on every platform.
 
@@ -70,7 +70,7 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 ---
 
-## Synology (DSM 7.2+ — Container Manager)
+## Synology (DSM 7.2+ - Container Manager)
 
 1. Open **Container Manager** → **Project** → **Create**.
 2. **Project name:** `ray`. **Path:** pick/make a folder like `/docker/ray`.
@@ -85,7 +85,7 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 ## Unraid
 
-1. **Apps** (Community Applications) → search **Ray** — or add a container manually with **Add Container**.
+1. **Apps** (Community Applications) → search **Ray** - or add a container manually with **Add Container**.
 2. **Repository:** `techspecs/ray:cpu`
 3. **Port:** add `8787` → `8787`.
 4. **Volumes (Paths):** map host folders to `/config`, `/models`, `/data`, `/out`, and your media share to `/media` (read-only).
@@ -115,8 +115,8 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 | Folder inside the container | What it is | Keep it? |
 |---|---|---|
-| `/config` | your sign-in + settings | **Yes** — deleting it logs you out |
-| `/models` | downloaded models (several GB) | **Yes** — deleting it re-downloads everything |
+| `/config` | your sign-in + settings | **Yes** - deleting it logs you out |
+| `/models` | downloaded models (several GB) | **Yes** - deleting it re-downloads everything |
 | `/data` | working data | yes |
 | `/out` | finished results | that's your output |
 | `/media` | your source videos (read-only) | your files |
@@ -127,7 +127,7 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 - **Page won't load at `http://NAS-IP:8787/`.** Make sure the container is running, the port `8787` is mapped, and `RAY_DEVAPI_EXPOSE=1` is set (without it, the server only answers on the NAS itself, not from other devices). Check your NAS firewall allows port 8787.
 - **It asks for an API key and I don't have one.** The key is printed in the container's **log** the first time it starts (`docker compose logs ray`). Copy the `ray_…` value.
-- **First subtitle job sits at "downloading".** The first run pulls the models it needs (several GB) into `/models`. That's a one-time download — later jobs start immediately. Keep the `models` volume.
+- **First subtitle job sits at "downloading".** The first run pulls the models it needs (several GB) into `/models`. That's a one-time download - later jobs start immediately. Keep the `models` volume.
 - **"No space left" / stuck downloads.** Make sure the volume that holds `/models` has several GB free.
 - **Permissions on the media/out folders.** If Ray can't read your videos or write results, check the folder permissions on the NAS so the container can access them.
 
@@ -140,4 +140,4 @@ The `cpu` image works everywhere and needs no special setup. If your box has a s
 - **NVIDIA:** use `techspecs/ray:cuda` and pass the GPU through (in Compose, add the `deploy.resources.reservations.devices` GPU block; on Unraid/DSM enable NVIDIA runtime and add `--gpus all`). Works on a Linux host and on Windows/Docker Desktop.
 - **AMD / Intel (Linux host):** use `techspecs/ray:vulkan` and pass `--device /dev/dri`.
 
-Everything still runs fine on CPU if you skip this — the GPU only makes it faster.
+Everything still runs fine on CPU if you skip this - the GPU only makes it faster.

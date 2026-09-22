@@ -1,4 +1,4 @@
-# Ray headless — Docker Compose starter (great for a NAS or any always-on server)
+# Ray headless - Docker Compose starter (great for a NAS or any always-on server)
 #
 # Most NAS boxes have no usable GPU, so this uses the CPU image (works everywhere).
 # NVIDIA host? Change the image to techspecs/ray:cuda and uncomment the "deploy" block.

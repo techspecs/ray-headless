@@ -18,7 +18,7 @@ No GPU required - this uses the `cpu` image, which runs on any machine with Dock
 **1. Start the server:**
 
 ```sh
-docker run -d --name ray -p 8787:8787 \
+docker run -d --name ray-server -p 8787:8787 \
   -e RAY_DEVAPI_EXPOSE=1 \
   -v ray-config:/config -v ray-models:/models -v ray-data:/data \
   -v "$PWD/out:/out" -v "$PWD/media:/media:ro" \
@@ -28,7 +28,7 @@ docker run -d --name ray -p 8787:8787 \
 **2. Copy your API key** (the server prints one on first start):
 
 ```sh
-docker logs ray
+docker logs ray-server
 ```
 
 Look for a line with a key starting `ray_…` and copy it.
@@ -43,6 +43,8 @@ Paste the key, sign in to your Ray account, and drag in a video. Done.
 
 > Replace `SERVER-IP` with the machine's address - `localhost` if it's your own computer, or your server/NAS IP like `192.168.1.50`.
 > The first job downloads the models it needs (a few GB) into the `ray-models` volume; every run after that starts instantly.
+>
+> **Got `driver failed programming external connectivity` / `port is already allocated`?** Port 8787 is already in use - swap it for another host port (`-p 8788:8787`, then open `:8788`), or see the [troubleshooting section](docs/nas-install.md#troubleshooting).
 
 ---
 
@@ -52,9 +54,9 @@ Save this as `compose.yaml`, put your videos in a `media` folder beside it, then
 
 ```yaml
 services:
-  ray:
+  ray-server:
     image: techspecs/ray:cpu
-    container_name: ray
+    container_name: ray-server
     ports:
       - "8787:8787"
     environment:
@@ -75,7 +77,7 @@ volumes:
 
 ```sh
 docker compose up -d
-docker compose logs ray     # copy the printed ray_… API key
+docker compose logs ray-server     # copy the printed ray_… API key
 ```
 
 Then open **`http://SERVER-IP:8787/`** and paste the key.

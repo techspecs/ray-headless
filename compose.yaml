@@ -5,13 +5,13 @@
 #
 #   1) Put this file in a folder, e.g.  /volume1/docker/ray/compose.yaml
 #   2) Run:  docker compose up -d
-#   3) Get your API key:  docker compose logs ray   (copy the line that prints a key)
+#   3) Get your API key:  docker compose logs ray-server   (copy the line that prints a key)
 #   4) Open  http://YOUR-SERVER-IP:8787/  in a browser, paste the key, sign in.
 
 services:
-  ray:
+  ray-server:
     image: techspecs/ray:cpu          # NVIDIA host -> techspecs/ray:cuda
-    container_name: ray
+    container_name: ray-server
     ports:
       - "8787:8787"                   # dashboard + API, reachable at http://SERVER-IP:8787/
     environment:

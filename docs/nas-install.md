@@ -23,9 +23,9 @@ This is the most reliable method and it's the same on every platform.
 
 ```yaml
 services:
-  ray:
+  ray-server:
     image: techspecs/ray:cpu
-    container_name: ray
+    container_name: ray-server
     ports:
       - "8787:8787"
     environment:
@@ -55,7 +55,7 @@ docker compose up -d
 **4. Get your API key** (the server prints one the first time it starts):
 
 ```sh
-docker compose logs ray
+docker compose logs ray-server
 ```
 
 Look for a line with a key that starts with `ray_…` and copy it.
@@ -76,7 +76,7 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 2. **Project name:** `ray`. **Path:** pick/make a folder like `/docker/ray`.
 3. **Source:** choose *Create docker-compose.yml* and paste the same `compose.yaml` from above.
 4. Click **Next** → **Done**. Container Manager builds and starts it.
-5. In Container Manager → **Container** → `ray` → **Details → Log**, find the `ray_…` API key.
+5. In Container Manager → **Container** → `ray-server` → **Details → Log**, find the `ray_…` API key.
 6. Open `http://YOUR-SYNOLOGY-IP:8787/`, paste the key, sign in.
 
 > Older DSM without "Project"? Use Container Manager → **Registry**, search **`techspecs/ray`**, download the **`cpu`** tag, then create a container: map port **8787**, add the four folder mounts (`/config`, `/models`, `/data`, `/out`, `/media`), and add environment variable `RAY_DEVAPI_EXPOSE=1`.
@@ -125,8 +125,9 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 ## Troubleshooting
 
+- **`driver failed programming external connectivity on endpoint ray-server` / `port is already allocated`.** Port `8787` on the host is already in use (often a leftover `ray-server` container or another app), so Docker can't publish it. Easiest fix: use a different host port - change `"8787:8787"` to `"8788:8787"` in the Compose file (or `-p 8788:8787` in `docker run`) and open `http://YOUR-NAS-IP:8788/`. To instead free up 8787: remove any old container with `docker rm -f ray-server`, then find what's holding the port - Linux/NAS: `sudo ss -ltnp | grep 8787`; Windows: `netstat -ano | findstr 8787`. On Windows/Docker Desktop, if the port sits in Windows' reserved range, run `net stop winnat` then `net start winnat` in an admin PowerShell (or just restart Docker Desktop) and try again.
 - **Page won't load at `http://NAS-IP:8787/`.** Make sure the container is running, the port `8787` is mapped, and `RAY_DEVAPI_EXPOSE=1` is set (without it, the server only answers on the NAS itself, not from other devices). Check your NAS firewall allows port 8787.
-- **It asks for an API key and I don't have one.** The key is printed in the container's **log** the first time it starts (`docker compose logs ray`). Copy the `ray_…` value.
+- **It asks for an API key and I don't have one.** The key is printed in the container's **log** the first time it starts (`docker compose logs ray-server`). Copy the `ray_…` value.
 - **First subtitle job sits at "downloading".** The first run pulls the models it needs (several GB) into `/models`. That's a one-time download - later jobs start immediately. Keep the `models` volume.
 - **"No space left" / stuck downloads.** Make sure the volume that holds `/models` has several GB free.
 - **Permissions on the media/out folders.** If Ray can't read your videos or write results, check the folder permissions on the NAS so the container can access them.

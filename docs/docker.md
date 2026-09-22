@@ -30,11 +30,11 @@ docker volume create ray-data
 docker run -it --rm -v ray-config:/config techspecs/ray:cuda login
 
 # 2) Start serving. On first boot the server prints a generated API key in its log.
-docker run -d --name ray --gpus all -p 8787:8787 \
+docker run -d --name ray-server --gpus all -p 8787:8787 \
     -v ray-config:/config -v ray-models:/models -v ray-data:/data \
     -v "$PWD/out:/out" -v "$PWD/media:/media:ro" \
     techspecs/ray:cuda
-docker logs ray            # grab the printed API key (stored hashed in /config)
+docker logs ray-server            # grab the printed API key (stored hashed in /config)
 ```
 
 (For the `vulkan` image swap `--gpus all` for `--device /dev/dri`; for `cpu`, drop both.)

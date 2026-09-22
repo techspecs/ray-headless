@@ -1,9 +1,9 @@
 <#
-  Ray CLI installer (Windows) — installs the `ray-cli` client.
+  Ray CLI installer (Windows) - installs the `ray-cli` client.
 
     irm https://raw.githubusercontent.com/techspecs/ray-headless/main/install.ps1 | iex
 
-  (Installs the newest release, betas included — the script resolves the version via the GitHub API.)
+  (Installs the newest release, betas included - the script resolves the version via the GitHub API.)
 
   Options (when run as a file):  -Version <tag>  -Dir <path>
   Env equivalents: RAY_VERSION, RAY_INSTALL_DIR

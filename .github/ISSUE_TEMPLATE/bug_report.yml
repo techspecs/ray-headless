@@ -5,15 +5,15 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve Ray headless! Please fill in as much as you can — the setup details make bugs far faster to fix.
+        Thanks for helping improve Ray headless! Please fill in as much as you can - the setup details make bugs far faster to fix.
   - type: dropdown
     id: distribution
     attributes:
       label: How are you running it?
       options:
-        - Docker — cpu image
-        - Docker — cuda image
-        - Docker — vulkan image
+        - Docker - cpu image
+        - Docker - cuda image
+        - Docker - vulkan image
         - CLI (Homebrew / Scoop / winget / direct download)
     validations:
       required: true
@@ -60,6 +60,6 @@ body:
     attributes:
       label: If you expected GPU acceleration
       options:
-        - label: "I'm on a Linux host (GPU in Docker requires Linux — Windows/macOS Docker Desktop run on CPU; use the desktop app for GPU there)."
+        - label: "I'm on a Linux host (GPU in Docker requires Linux - Windows/macOS Docker Desktop run on CPU; use the desktop app for GPU there)."
         - label: "cuda image: I passed `--gpus all` and have the NVIDIA Container Toolkit installed."
         - label: "vulkan image: I passed `--device /dev/dri`."

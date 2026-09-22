@@ -1,9 +1,9 @@
 #!/bin/sh
-# Ray CLI installer (Linux / macOS) — installs the `ray-cli` client.
+# Ray CLI installer (Linux / macOS) - installs the `ray-cli` client.
 #
 #   curl -fsSL https://raw.githubusercontent.com/techspecs/ray-headless/main/install.sh | sh
 #
-# (Installs the newest release, betas included — the script resolves the version via the GitHub API.)
+# (Installs the newest release, betas included - the script resolves the version via the GitHub API.)
 #
 # Options (pass after `-s --`, e.g. `... | sh -s -- --dir ~/bin`):
 #   --version X    install a specific release tag (default: latest, incl. betas)
@@ -33,7 +33,7 @@ os="$(uname -s)"; arch="$(uname -m)"
 case "$os" in
   Linux)  OSN="linux" ;;
   Darwin) OSN="macos" ;;
-  *) err "unsupported OS '$os' — on Windows use install.ps1" ;;
+  *) err "unsupported OS '$os' - on Windows use install.ps1" ;;
 esac
 case "$arch" in
   x86_64|amd64)  ARCHN="x64" ;;
@@ -87,7 +87,7 @@ echo "ray-install: installed ${INSTALL_DIR}/${BIN}"
 
 case ":${PATH}:" in
   *":${INSTALL_DIR}:"*)
-    echo "ray-install: done — run:  ${BIN} --help" ;;
+    echo "ray-install: done - run:  ${BIN} --help" ;;
   *)
     case "${SHELL:-}" in
       */zsh)  rc="${HOME}/.zshrc" ;;

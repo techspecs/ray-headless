@@ -1,7 +1,7 @@
 # Homebrew formula for the Ray headless CLI.
 #
 # Installs the FULL self-contained bundle produced by
-# packaging/cli/build-cli-bundle.sh (`ray-headless-<platform>-<version>.tar.gz`) —
+# packaging/cli/build-cli-bundle.sh (`ray-headless-<platform>-<version>.tar.gz`) -
 # the engine (ray-server) + client (ray-cli) + all vendored Qt/FFmpeg/TLS libs and
 # the `ray` launcher. It is NOT the thin `ray-cli` client. Works on macOS (Apple
 # silicon) and on Linuxbrew (x86_64).
@@ -41,7 +41,7 @@ class RayHeadless < Formula
     libexec.install Dir["*"]
 
     # Put the launcher on PATH. `ray` follows the symlink back to its bundle root
-    # (libexec) to locate bin/ and lib/, so a symlink is all that is needed — do
+    # (libexec) to locate bin/ and lib/, so a symlink is all that is needed - do
     # NOT copy the launcher out of the bundle.
     bin.install_symlink libexec/"ray"
   end

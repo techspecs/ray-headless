@@ -1,0 +1,39 @@
+# Ray headless — Docker Compose starter (great for a NAS or any always-on server)
+#
+# Most NAS boxes have no usable GPU, so this uses the CPU image (works everywhere).
+# NVIDIA host? Change the image to techspecs/ray:cuda and uncomment the "deploy" block.
+#
+#   1) Put this file in a folder, e.g.  /volume1/docker/ray/compose.yaml
+#   2) Run:  docker compose up -d
+#   3) Get your API key:  docker compose logs ray   (copy the line that prints a key)
+#   4) Open  http://YOUR-SERVER-IP:8787/  in a browser, paste the key, sign in.
+
+services:
+  ray:
+    image: techspecs/ray:cpu          # NVIDIA host -> techspecs/ray:cuda
+    container_name: ray
+    ports:
+      - "8787:8787"                   # dashboard + API, reachable at http://SERVER-IP:8787/
+    environment:
+      RAY_DEVAPI_EXPOSE: "1"          # let other devices on your LAN reach it
+      # RAY_TELEMETRY: "off"          # uncomment to turn off crash reporting
+    volumes:
+      - ray-config:/config            # your sign-in + settings  (KEEP THIS)
+      - ray-models:/models            # downloaded models, several GB (keep = warm restarts)
+      - ray-data:/data                # working data
+      - ./out:/out                    # finished subtitle files show up here
+      - ./media:/media:ro             # your videos (read-only); submit them by their /media/... path
+    restart: unless-stopped
+    # --- NVIDIA GPU only: uncomment to pass the GPU through ---
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  ray-config:
+  ray-models:
+  ray-data:

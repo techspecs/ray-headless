@@ -1,56 +1,99 @@
 # Ray headless
 
-Run **Ray's on-device subtitle & transcription engine** as a server — the same `/v4` Developer API the desktop app serves (`/v1` stays as a permanent alias), without a GUI. Generate, translate, retime, narrate and burn-in subtitles locally (or via Ray Cloud), with a built-in web dashboard. Ship it as a **Docker container** or a **standalone CLI** (`ray-server` + `ray-cli`).
+Run **Ray's subtitle & transcription engine** as a server — same as the desktop app, no GUI, driven by a `/v4` Developer API (`/v1` is a permanent alias) plus a built-in web dashboard. Runs as a **Docker container** or a **standalone CLI** (`ray-server` + `ray-cli`). Perfect for a home server, NAS, or media library.
 
 - 🐳 **Docker:** [`techspecs/ray`](https://hub.docker.com/r/techspecs/ray) — `cpu` / `cuda` / `vulkan`
-- 💻 **CLI:** one-line installer · Homebrew · Scoop · winget · direct download (below)
-- 🌐 **Site:** https://rayplayer.com
-- 🐛 **Issues:** please report bugs and requests in the [Issues](../../issues) tab
+- 💻 **CLI:** one-line installer · Homebrew · Scoop · winget · direct download
+- 📟 **On a NAS?** Follow the step-by-step [**NAS install guide**](docs/nas-install.md) (Synology / Unraid / QNAP).
+- 🌐 **Site:** https://rayplayer.com  ·  🐛 **Issues:** [Issues tab](../../issues)
 
-> **Beta.** This is an early public release — please try it and open an issue if something breaks.
+> **Beta** — early public release. Please try it and open an issue if something breaks.
 
 ---
 
-## Run with Docker
+## Get running in 3 steps
 
-### Which image? Two questions
+No GPU required — this uses the `cpu` image, which runs on any machine with Docker. (Want it faster on a GPU box? See [GPU acceleration](#gpu-acceleration).)
 
-1. **What GPU is in the machine?** NVIDIA → `cuda`, AMD/Intel → `vulkan`, none → `cpu`.
-2. **NVIDIA?** The `cuda` image runs fully on the GPU on a **Linux host and on Windows/Docker Desktop** (WSL2). **AMD/Intel** GPU acceleration needs a **Linux** host; on Windows/macOS Docker Desktop use `cpu` (or the desktop app if you want GPU there).
-
-**NVIDIA → `cuda` (Linux or Windows/Docker Desktop) · Linux + AMD/Intel → `vulkan` · anything else → `cpu`.**
-
-| Situation | Image | Run flag |
-|---|---|---|
-| NVIDIA (Linux **or** Windows/Docker Desktop) | `techspecs/ray:cuda` | `--gpus all` (needs NVIDIA Container Toolkit) |
-| Linux + AMD / Intel | `techspecs/ray:vulkan` | `--device /dev/dri` |
-| No GPU (any OS) | `techspecs/ray:cpu` | *(none)* |
-
-The **cpu** and **vulkan** images run the full pipeline on CPU when no GPU is present. The **cuda** image links the NVIDIA runtime and **requires `--gpus all` to start** — use `cpu`/`vulkan` for a CPU-only host.
-
-### Quick start
+**1. Start the server:**
 
 ```sh
-docker volume create ray-config
-docker volume create ray-models
-docker volume create ray-data
-
-# 1) Sign in once (emailed one-time code) — stored on the ray-config volume.
-docker run -it --rm -v ray-config:/config techspecs/ray:cuda login
-
-# 2) Start serving. The server prints a generated API key in its log on first boot.
-docker run -d --name ray --gpus all -p 8787:8787 \
-    -v ray-config:/config -v ray-models:/models -v ray-data:/data \
-    -v "$PWD/out:/out" -v "$PWD/media:/media:ro" \
-    techspecs/ray:cuda
-docker logs ray            # grab the printed API key (stored hashed in /config)
+docker run -d --name ray -p 8787:8787 \
+  -e RAY_DEVAPI_EXPOSE=1 \
+  -v ray-config:/config -v ray-models:/models -v ray-data:/data \
+  -v "$PWD/out:/out" -v "$PWD/media:/media:ro" \
+  techspecs/ray:cpu
 ```
 
-(Swap `--gpus all` for `--device /dev/dri` on the `vulkan` image; drop both on `cpu`.)
+**2. Copy your API key** (the server prints one on first start):
 
-Then open **`http://your-host:8787/`** — a built-in dashboard to sign in, drag-and-drop videos, pick languages, and watch jobs live. There's also a one-shot `generate` mode and an automatic **watch-folder** mode. The first job downloads the models it needs into `/models` (multiple GB); keep that volume so restarts are warm.
+```sh
+docker logs ray
+```
 
-**Full container docs:** [docs/docker.md](docs/docker.md) — volumes, one-shot & watch-folder modes, tags, env vars, TLS. Also mirrored on the [Docker Hub page](https://hub.docker.com/r/techspecs/ray).
+Look for a line with a key starting `ray_…` and copy it.
+
+**3. Open the dashboard** in a browser:
+
+```
+http://SERVER-IP:8787/
+```
+
+Paste the key, sign in to your Ray account, and drag in a video. Done.
+
+> Replace `SERVER-IP` with the machine's address — `localhost` if it's your own computer, or your server/NAS IP like `192.168.1.50`.
+> The first job downloads the models it needs (a few GB) into the `ray-models` volume; every run after that starts instantly.
+
+---
+
+## Easiest for a NAS or always-on server: Docker Compose
+
+Save this as `compose.yaml`, put your videos in a `media` folder beside it, then run `docker compose up -d`:
+
+```yaml
+services:
+  ray:
+    image: techspecs/ray:cpu
+    container_name: ray
+    ports:
+      - "8787:8787"
+    environment:
+      RAY_DEVAPI_EXPOSE: "1"
+    volumes:
+      - ray-config:/config
+      - ray-models:/models
+      - ray-data:/data
+      - ./out:/out
+      - ./media:/media:ro
+    restart: unless-stopped
+
+volumes:
+  ray-config:
+  ray-models:
+  ray-data:
+```
+
+```sh
+docker compose up -d
+docker compose logs ray     # copy the printed ray_… API key
+```
+
+Then open **`http://SERVER-IP:8787/`** and paste the key.
+**Full NAS walkthrough** (Synology Container Manager, Unraid, QNAP, troubleshooting): [**docs/nas-install.md**](docs/nas-install.md).
+
+---
+
+## GPU acceleration
+
+The `cpu` image works everywhere. For faster processing on a machine with a GPU, use the matching image (swap the image name, and add the flag, in the commands above):
+
+| Your hardware | Image | Extra flag |
+|---|---|---|
+| **NVIDIA GPU** (Linux, or Windows/Docker Desktop) | `techspecs/ray:cuda` | `--gpus all` (Linux needs the NVIDIA Container Toolkit) |
+| **AMD / Intel GPU** (Linux host) | `techspecs/ray:vulkan` | `--device /dev/dri` |
+| **No GPU / not sure** | `techspecs/ray:cpu` | *(none)* |
+
+The `cuda` image **requires `--gpus all`** to start; use `cpu`/`vulkan` on a machine without an NVIDIA GPU.
 
 ---
 
@@ -58,7 +101,7 @@ Then open **`http://your-host:8787/`** — a built-in dashboard to sign in, drag
 
 ### One-line install (recommended)
 
-Downloads the right `ray-cli` build for your OS, verifies its checksum against `SHA256SUMS`, installs it, and adds it to your PATH.
+Downloads the right `ray-cli` build for your OS, verifies its checksum, and adds it to your PATH.
 
 **Linux / macOS:**
 ```sh
@@ -70,7 +113,7 @@ curl -fsSL https://raw.githubusercontent.com/techspecs/ray-headless/main/install
 irm https://raw.githubusercontent.com/techspecs/ray-headless/main/install.ps1 | iex
 ```
 
-Open a new terminal afterwards (or follow the printed line) so the `ray-cli` command is on your PATH. Prebuilt `ray-cli` targets: Linux x64, macOS arm64, Windows x64.
+Open a new terminal afterwards so `ray-cli` is on your PATH.
 
 ### Package managers
 
@@ -95,13 +138,21 @@ winget install TechSpecs.RayHeadless
 
 Grab a bundle from the [Releases](../../releases) page (Linux `.tar.gz` / `.deb` / `.AppImage`, Windows `.zip`, macOS `.pkg`).
 
-First run needs a one-time `ray login`.
+---
+
+## Using it
+
+- **Web dashboard** (`http://SERVER-IP:8787/`): drag-and-drop videos, pick languages, watch progress live; finished files land in your `out` folder.
+- **One-shot from the command line** and **watch-folder** mode (auto-subtitle a whole library): see [**docs/docker.md**](docs/docker.md).
 
 ---
 
 ## Notes
 
-- **Seat:** one container/install = one seat. Sign in with `login`, or set `RAY_ACCOUNT_EMAIL` + `RAY_ACCOUNT_LICENSE_KEY`.
-- **GPU in Docker:** the NVIDIA `cuda` image uses the GPU on a **Linux host and on Windows/Docker Desktop** (WSL2). AMD/Intel (`vulkan`) needs a Linux host; on Windows/macOS without NVIDIA the images run on CPU.
-- **Telemetry:** crash reporting is on by default (self-hosted Sentry). Set `RAY_TELEMETRY=off` to disable.
+- **Your seat:** one container = one seat. Sign in from the dashboard, or set `RAY_ACCOUNT_EMAIL` + `RAY_ACCOUNT_LICENSE_KEY`.
+- **Keep your volumes:** `ray-config` holds your sign-in; `ray-models` holds the downloaded models. Deleting them means re-logging-in / re-downloading.
+- **Access from other devices:** `RAY_DEVAPI_EXPOSE=1` lets other machines on your network reach it (an API key is required — the server creates one on first boot and prints it to the log).
+- **TLS:** the server speaks plain HTTP on 8787 — put it behind a reverse proxy (Caddy / nginx / Traefik) for HTTPS.
+- **Telemetry:** on by default; set `RAY_TELEMETRY=off` to disable.
+- **Full container reference:** [docs/docker.md](docs/docker.md).
 - **License:** Ray is proprietary software. © 2026 TechSpecs. All rights reserved. This repository holds distribution manifests and documentation, not source code.

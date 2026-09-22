@@ -1,0 +1,44 @@
+{
+    "##": [
+        "Scoop manifest for the FULL Ray headless CLI bundle (ray-headless-windows-x64[-<version>].zip).",
+        "Per release, fill in: (1) version, (2) architecture.64bit.url, (3) architecture.64bit.hash",
+        "(the SHA256 printed by build-cli-bundle.ps1), and the checkver/autoupdate URLs to point at",
+        "your release host. x64 only. When adding to a Scoop bucket, name the file 'ray-headless.json'.",
+        "Install:  scoop install ray-headless   (or:  scoop install <bucket>/ray-headless )"
+    ],
+    "version": "4.0.15-beta.1",
+    "description": "Ray headless CLI - on-device subtitles, translation, narration, and stem separation.",
+    "homepage": "https://rayplayer.com",
+    "license": "Proprietary",
+    "notes": [
+        "Run 'ray help' to get started. 'ray serve' starts the local API server;",
+        "'ray run <file>' does a one-shot subtitle job.",
+        "Models and results are stored under %LOCALAPPDATA%\\Ray."
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/techspecs/ray-headless/releases/download/4.0.15-beta.1/ray-headless-windows-x64-4.0.15-beta.1.zip",
+            "hash": "ff2284b94e4c20aff8d7a2af676b4aede2a843ecdb33eb710652930a08dfd69d",
+            "extract_dir": "ray-headless-windows-x64"
+        }
+    },
+    "bin": [
+        [
+            "ray.cmd",
+            "ray"
+        ]
+    ],
+    "checkver": {
+        "comment": "TODO: point at the releases page/feed; the regex captures the version from the asset name.",
+        "url": "https://github.com/techspecs/ray-headless/releases",
+        "regex": "ray-headless-windows-x64-([\\d.]+)\\.zip"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/techspecs/ray-headless/releases/download/$version/ray-headless-windows-x64-$version.zip",
+                "extract_dir": "ray-headless-windows-x64"
+            }
+        }
+    }
+}

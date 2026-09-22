@@ -1,0 +1,55 @@
+# winget manifest for the Ray headless CLI (full bundle zip).
+#
+# This is a SINGLETON manifest: one file that installs via
+#   winget install --manifest packaging/cli/windows/winget
+# For submission to the community winget-pkgs repository, winget wants the
+# manifest SPLIT into three files in a version folder:
+#   manifests/t/TechSpecs/RayHeadless/<version>/
+#     TechSpecs.RayHeadless.yaml                 (ManifestType: version)
+#     TechSpecs.RayHeadless.installer.yaml       (ManifestType: installer)
+#     TechSpecs.RayHeadless.locale.en-US.yaml    (ManifestType: defaultLocale)
+# Split with `winget-create` or by hand; the fields below map 1:1 onto them.
+#
+# Per release, fill in: PackageVersion, Installers[].InstallerUrl, and
+# Installers[].InstallerSha256 (the SHA256 printed by build-cli-bundle.ps1).
+#
+# The installer is a zip containing a "portable" launcher: winget extracts it and
+# registers a `ray` command alias pointing at ray.cmd, so `ray serve` works from
+# any shell after `winget install TechSpecs.RayHeadless`.
+
+PackageIdentifier: TechSpecs.RayHeadless
+PackageVersion: "4.0.15-beta.1"
+PackageLocale: en-US
+Publisher: TechSpecs
+PublisherUrl: https://rayplayer.com
+PublisherSupportUrl: https://rayplayer.com
+PackageName: Ray Headless CLI
+PackageUrl: https://rayplayer.com
+License: Proprietary
+Copyright: (c) 2026 TechSpecs. All rights reserved.
+ShortDescription: On-device subtitles, translation, narration, and stem separation from the command line.
+Description: >-
+  Ray headless CLI bundles the Ray engine (ray-server) and client (ray-cli) so a
+  server, NAS, or workstation can generate subtitles, translate, narrate, and
+  separate stems locally through the documented /v1 HTTP API. Models and results
+  are stored under %LOCALAPPDATA%\Ray.
+Moniker: ray
+Tags:
+  - subtitles
+  - transcription
+  - translation
+  - cli
+  - media
+Installers:
+  - Architecture: x64
+    InstallerType: zip
+    NestedInstallerType: portable
+    NestedInstallerFiles:
+      # Path INSIDE the zip. build-cli-bundle.ps1 names the inner folder
+      # "ray-headless-windows-x64" and places ray.cmd at its root.
+      - RelativeFilePath: ray-headless-windows-x64\ray.cmd
+        PortableCommandAlias: ray
+    InstallerUrl: https://github.com/techspecs/ray-headless/releases/download/4.0.15-beta.1/ray-headless-windows-x64-4.0.15-beta.1.zip
+    InstallerSha256: FF2284B94E4C20AFF8D7A2AF676B4AEDE2A843ECDB33EB710652930A08DFD69D
+ManifestType: singleton
+ManifestVersion: 1.6.0

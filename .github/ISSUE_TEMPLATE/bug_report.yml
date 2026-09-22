@@ -1,0 +1,65 @@
+name: Bug report
+description: Something isn't working in the Ray headless container or CLI.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Ray headless! Please fill in as much as you can — the setup details make bugs far faster to fix.
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: How are you running it?
+      options:
+        - Docker — cpu image
+        - Docker — cuda image
+        - Docker — vulkan image
+        - CLI (Homebrew / Scoop / winget / direct download)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: e.g. 4.0.15-beta (image tag, or `ray-cli --version`)
+      placeholder: 4.0.15-beta
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Host OS + architecture
+      description: e.g. Ubuntu 24.04 x86_64, Windows 11 + Docker Desktop (WSL2), macOS 14 arm64
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU (if any)
+      description: e.g. NVIDIA RTX 3090, AMD RX 6600, Intel Arc, none
+  - type: textarea
+    id: command
+    attributes:
+      label: How you started it
+      description: The `docker run` command / compose service, or the CLI command. Redact any secrets.
+      render: shell
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected vs what happened
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: "`docker logs <name>` around the failure, or the job's error + hint. Redact API keys / tokens."
+      render: shell
+  - type: checkboxes
+    id: gpu-check
+    attributes:
+      label: If you expected GPU acceleration
+      options:
+        - label: "I'm on a Linux host (GPU in Docker requires Linux — Windows/macOS Docker Desktop run on CPU; use the desktop app for GPU there)."
+        - label: "cuda image: I passed `--gpus all` and have the NVIDIA Container Toolkit installed."
+        - label: "vulkan image: I passed `--device /dev/dri`."

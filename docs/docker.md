@@ -84,7 +84,7 @@ Or turn on watch mode on the main server container with environment variables - 
 | `/data` | Working data + downloaded runtime components. |
 | `/out` | Completed job results. |
 
-Media to subtitle is mounted (read-only is fine) and submitted by its **in-container** path.
+Media to subtitle is mounted (read-only is fine - Ray never modifies your files) and submitted by its **in-container** path. Finished subtitles are written to `/out`, **not** back into the media folder.
 
 ## Notes
 

@@ -81,6 +81,9 @@ docker compose logs ray-server     # copy the printed ray_… API key
 ```
 
 Then open **`http://SERVER-IP:8787/`** and paste the key.
+
+> `media` is mounted **read-only** (`:ro`) - Ray reads your videos but never changes them, so finished subtitles come out in the `out` folder, **not** next to the video.
+
 **Full NAS walkthrough** (Synology Container Manager, Unraid, QNAP, troubleshooting): [**docs/nas-install.md**](docs/nas-install.md).
 
 ---

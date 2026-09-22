@@ -22,7 +22,7 @@ services:
       - ray-models:/models            # downloaded models, several GB (keep = warm restarts)
       - ray-data:/data                # working data
       - ./out:/out                    # finished subtitle files show up here
-      - ./media:/media:ro             # your videos (read-only); submit them by their /media/... path
+      - ./media:/media:ro             # your videos, READ-ONLY so Ray never changes them; subtitles come out in ./out, NOT here
     restart: unless-stopped
     # --- NVIDIA GPU only: uncomment to pass the GPU through ---
     # deploy:

@@ -57,7 +57,7 @@ volumes:
   ray-data:
 ```
 
-Put the videos you want to subtitle into a `media` subfolder next to this file; finished files will appear in an `out` subfolder.
+Put the videos you want to subtitle into a `media` subfolder next to this file. That folder is mounted **read-only** (`:ro`), so Ray reads your videos but never changes them - finished subtitles appear in the `out` subfolder, **not** next to the video.
 
 **3. Start it.** In a terminal in that folder:
 
@@ -194,7 +194,7 @@ So Brazilian Portuguese is `RAY_WATCH_LANGS: "pt-BR"` (or `--lang pt-BR`) - plai
 | `/models` | downloaded models (several GB) | **Yes** - deleting it re-downloads everything |
 | `/data` | working data | yes |
 | `/out` | finished results | that's your output |
-| `/media` | your source videos (read-only) | your files |
+| `/media` | your source videos - mounted **read-only** so Ray never modifies them (results go to `out`, not here) | your files |
 
 ---
 

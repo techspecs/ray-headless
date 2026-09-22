@@ -151,6 +151,24 @@ docker run -d --name ray-watch \
 > **Sign in first.** Watch mode uses the same account sign-in as the dashboard (stored in the `ray-config` volume), so sign in once via the dashboard before relying on it.
 > **Want it to translate too, or re-time?** Add `--watch-tasks` to the `watch` command with a comma-separated list from `create` (make subtitles, the default), `translate`, `sync` (re-time), `submerge` - for example `watch /media --lang nl --watch-tasks create,translate`.
 
+### Different settings per folder
+
+`RAY_WATCH_DIRS` + `RAY_WATCH_LANGS` apply the **same** settings to every folder. To give each folder its **own** language and tasks - for example one folder that only makes subtitles and another that makes *and* translates them - use `RAY_WATCH_CONFIG` instead. It's a JSON list with one entry per folder, and it replaces the two vars above:
+
+```yaml
+    environment:
+      RAY_DEVAPI_EXPOSE: "1"
+      RAY_WATCH_CONFIG: >-
+        [
+          {"dir":"/media/subs-only",  "languages":["en"],    "tasks":["create"]},
+          {"dir":"/media/translated", "languages":["pt-BR"], "tasks":["create","translate"]}
+        ]
+```
+
+Mount both folders (e.g. `-v /path/a:/media/subs-only -v /path/b:/media/translated`). `tasks` is optional and defaults to `["create"]`.
+
+> **Changing watch settings needs a restart.** Watch folders are read when the container **starts**, so after editing any `RAY_WATCH_*` value run `docker compose up -d` again to apply it. There isn't a dashboard control for watch folders yet.
+
 ### Language codes (and regional variants)
 
 Use a language code such as `en`, `nl`, `de`, `ja`. For a **specific regional variant**, use its tagged code (case and `-`/`_` don't matter):

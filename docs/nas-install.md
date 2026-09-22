@@ -119,7 +119,7 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 - **Sign in:** on the dashboard, paste the API key once, then sign in to your Ray account (a one-time email code).
 - **Subtitle a video:** drag-and-drop a file, or point Ray at a file already inside your mounted `media` folder, choose the language, and start. Watch progress live.
-- **Where results go:** finished subtitle files appear in the `out` folder you mapped.
+- **Where results go:** finished subtitles are collected in the `out` folder you mapped (named by job id), **not** next to the source video - the headless server writes every result to `out`, and your `media` folder is mounted read-only. If your media server (Plex/Jellyfin) needs the `.srt` beside the video, move/rename it there yourself for now. (Writing it beside the video automatically is tracked in the [issues](../../issues).)
 - **Auto-subtitle a whole library:** turn on [watch mode](#auto-subtitle-a-whole-folder-watch-mode) (below).
 
 ---

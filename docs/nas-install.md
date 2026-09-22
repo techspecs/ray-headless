@@ -13,6 +13,19 @@ A plain-English guide to running Ray on a NAS (Synology, QNAP, Unraid, TrueNAS) 
 
 ---
 
+## Opening a terminal on your NAS
+
+Some steps below use commands (like `docker compose up -d`). You run those in a **terminal** on the NAS:
+
+- **Synology:** Control Panel → **Terminal & SNMP** → tick **Enable SSH service**. Then from your computer open **PowerShell** (Windows) or **Terminal** (Mac) and run `ssh your-user@YOUR-NAS-IP`. Commands may need `sudo` in front.
+- **Unraid:** click the **`>_`** terminal icon at the top-right of the web dashboard - it opens a terminal in your browser.
+- **QNAP:** Control Panel → **Telnet / SSH** → enable **SSH**, then `ssh admin@YOUR-NAS-IP` from your computer.
+- **Your own PC (not a NAS):** just open **PowerShell** (Windows) or **Terminal** (Mac) - Docker commands run there directly.
+
+Prefer clicking to typing? You can also see a container's status and ports right in your NAS's Docker app - **Synology Container Manager**, **Unraid Docker** tab, or **QNAP Container Station** - without opening a terminal at all.
+
+---
+
 ## The easy way - Docker Compose (works on any NAS)
 
 This is the most reliable method and it's the same on every platform.

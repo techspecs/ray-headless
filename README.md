@@ -44,7 +44,7 @@ Paste the key, sign in to your Ray account, and drag in a video. Done.
 > Replace `SERVER-IP` with the machine's address - `localhost` if it's your own computer, or your server/NAS IP like `192.168.1.50`.
 > The first job downloads the models it needs (a few GB) into the `ray-models` volume; every run after that starts instantly.
 >
-> **Got `driver failed programming external connectivity` / `port is already allocated`?** Port 8787 is already in use - swap it for another host port (`-p 8788:8787`, then open `:8788`), or see the [troubleshooting section](docs/nas-install.md#troubleshooting).
+> **Got `driver failed programming external connectivity` / `port is already allocated`?** Port 8787 is already in use. Change only the **first** number of `-p 8787:8787` to any free port (e.g. `-p 8080:8787`) and open that port in the browser. Details: [using a different port](docs/nas-install.md#using-a-different-port).
 
 ---
 

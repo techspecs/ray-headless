@@ -123,9 +123,27 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 
 ---
 
+## Using a different port
+
+Ray uses port **8787**. If something else on your machine is already using it (you'll get a `port is already allocated` error), or you just want a different one, it's a one-number change.
+
+The port setting is written as **`HOST:CONTAINER`** - two numbers with a colon:
+
+- The **first** number is the port **on your machine**. **This is the one you change.**
+- The **second** number is the port **inside the container**. **Always leave it `8787`.**
+
+Example - to use `8080` instead of `8787`:
+
+- **Compose:** change the ports line to `- "8080:8787"`
+- **`docker run`:** use `-p 8080:8787`
+
+Then open **`http://YOUR-NAS-IP:8080/`** in your browser - use your new number in the address too. Nothing else needs to change.
+
+---
+
 ## Troubleshooting
 
-- **`driver failed programming external connectivity on endpoint ray-server` / `port is already allocated`.** Port `8787` on the host is already in use (often a leftover `ray-server` container or another app), so Docker can't publish it. Easiest fix: use a different host port - change `"8787:8787"` to `"8788:8787"` in the Compose file (or `-p 8788:8787` in `docker run`) and open `http://YOUR-NAS-IP:8788/`. To instead free up 8787: remove any old container with `docker rm -f ray-server`, then find what's holding the port - Linux/NAS: `sudo ss -ltnp | grep 8787`; Windows: `netstat -ano | findstr 8787`. On Windows/Docker Desktop, if the port sits in Windows' reserved range, run `net stop winnat` then `net start winnat` in an admin PowerShell (or just restart Docker Desktop) and try again.
+- **`driver failed programming external connectivity` / `port is already allocated`.** Port `8787` is already in use on your machine, so Ray can't grab it. Easiest fix: **[use a different port](#using-a-different-port)** (change only the first number). To instead free up 8787: remove any old container with `docker rm -f ray-server`, then find what's holding the port - Linux/NAS: `sudo ss -ltnp | grep 8787`; Windows: `netstat -ano | findstr 8787`. On Windows/Docker Desktop, if the port sits in Windows' reserved range, run `net stop winnat` then `net start winnat` in an admin PowerShell, or just restart Docker Desktop.
 - **Page won't load at `http://NAS-IP:8787/`.** Make sure the container is running, the port `8787` is mapped, and `RAY_DEVAPI_EXPOSE=1` is set (without it, the server only answers on the NAS itself, not from other devices). Check your NAS firewall allows port 8787.
 - **It asks for an API key and I don't have one.** The key is printed in the container's **log** the first time it starts (`docker compose logs ray-server`). Copy the `ray_…` value.
 - **First subtitle job sits at "downloading".** The first run pulls the models it needs (several GB) into `/models`. That's a one-time download - later jobs start immediately. Keep the `models` volume.

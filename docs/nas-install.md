@@ -120,7 +120,36 @@ Paste the API key, sign in to your Ray account, drag in a video, and pick your l
 - **Sign in:** on the dashboard, paste the API key once, then sign in to your Ray account (a one-time email code).
 - **Subtitle a video:** drag-and-drop a file, or point Ray at a file already inside your mounted `media` folder, choose the language, and start. Watch progress live.
 - **Where results go:** finished subtitle files appear in the `out` folder you mapped.
-- **Auto-subtitle a whole library:** see watch-folder mode in [docs/docker.md](docker.md).
+- **Auto-subtitle a whole library:** turn on [watch mode](#auto-subtitle-a-whole-folder-watch-mode) (below).
+
+---
+
+## Auto-subtitle a whole folder (watch mode)
+
+Want Ray to subtitle every video in a folder automatically - including new files you add later, with no clicking? Turn on **watch mode**.
+
+Add two settings to your container. In `compose.yaml`, under `environment:` (Ray always needs the language - it never guesses):
+
+```yaml
+    environment:
+      RAY_DEVAPI_EXPOSE: "1"
+      RAY_WATCH_DIRS: "/media"      # folder to watch (its path inside the container)
+      RAY_WATCH_LANGS: "en"         # subtitle language; comma-separate for more, e.g. "en,nl"
+```
+
+Then run `docker compose up -d` again. Ray subtitles everything already in your `media` folder and anything new that lands there; finished files go to `out`. The dashboard keeps working as usual.
+
+Prefer a separate container with `docker run`? Start one in watch mode:
+
+```sh
+docker run -d --name ray-watch \
+  -v ray-config:/config -v ray-models:/models -v ray-data:/data \
+  -v /path/to/your/media:/media \
+  techspecs/ray:cpu watch /media --lang en
+```
+
+> **Sign in first.** Watch mode uses the same account sign-in as the dashboard (stored in the `ray-config` volume), so sign in once via the dashboard before relying on it.
+> **Want it to translate too, or re-time?** Add `--watch-tasks` to the `watch` command with a comma-separated list from `create` (make subtitles, the default), `translate`, `sync` (re-time), `submerge` - for example `watch /media --lang nl --watch-tasks create,translate`.
 
 ---
 

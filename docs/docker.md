@@ -54,12 +54,26 @@ docker run --rm --gpus all \
 
 ### Watch-folder mode (auto-subtitle a media library)
 
+Ray watches a folder and subtitles everything in it, plus every new file that arrives. The language is required (Ray never guesses the target).
+
+Run a dedicated watch container:
+
 ```sh
-docker run -d --name ray-watch --gpus all \
+docker run -d --name ray-watch \
     -v ray-config:/config -v ray-models:/models -v ray-data:/data \
     -v /srv/media:/media \
-    techspecs/ray:cuda watch /media --lang nl
+    techspecs/ray:cpu watch /media --lang en
 ```
+
+(Add `--gpus all` with `techspecs/ray:cuda`, or `--device /dev/dri` with `:vulkan`, to use a GPU.)
+
+Or turn on watch mode on the main server container with environment variables - it keeps serving the dashboard/API and watches at the same time:
+
+```sh
+-e RAY_WATCH_DIRS=/media -e RAY_WATCH_LANGS=en
+```
+
+**Also translate or re-time?** Add `--watch-tasks` (comma-separated) from `create` (default - make subtitles), `translate`, `sync` (re-time), `submerge` - e.g. `watch /media --lang nl --watch-tasks create,translate`. For several folders with different settings, set `RAY_WATCH_CONFIG` to a JSON array, e.g. `[{"dir":"/media","languages":["nl"],"tasks":["create","translate"]}]`.
 
 ## Volumes
 

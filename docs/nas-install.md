@@ -198,6 +198,26 @@ So Brazilian Portuguese is `RAY_WATCH_LANGS: "pt-BR"` (or `--lang pt-BR`) - plai
 
 ---
 
+## File ownership & permissions
+
+The container runs as a fixed non-root user, **uid 1000 / gid 1000**, so subtitles it writes are owned by `1000:1000` with `0644` permissions (readable by everyone). There is no `PUID` / `PGID` / `UMASK` setting today.
+
+To make the output files owned by a specific user (for example your NAS account), run the container as that uid/gid with Docker's `--user`:
+
+- **Compose:** add `user: "1001:1001"` to the `ray-server` service.
+- **`docker run`:** add `--user 1001:1001`.
+
+Since it then runs as that user, the mounted folders have to be writable by it - use **host bind-mounts** (folders you can `chown`) rather than named volumes for `/config`, `/models`, `/data`, `/out`, and set them up first:
+
+```sh
+mkdir -p config models data out
+sudo chown -R 1001:1001 config models data out
+```
+
+If your NAS's main user is already uid 1000, the defaults line up and you don't need `--user` at all.
+
+> Native `PUID` / `PGID` / `UMASK` support (the usual NAS convention) is tracked in the [issues](../../issues).
+
 ## Using a different port
 
 Ray uses port **8787**. If something else on your machine is already using it (you'll get a `port is already allocated` error), or you just want a different one, it's a one-number change.

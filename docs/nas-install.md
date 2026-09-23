@@ -246,6 +246,7 @@ Then open **`http://YOUR-NAS-IP:8080/`** in your browser - use your new number i
 - **It asks for an API key and I don't have one.** The key is printed in the container's **log** the first time it starts (`docker compose logs ray-server`). Copy the `ray_…` value.
 - **First subtitle job sits at "downloading".** The first run pulls the models it needs (several GB) into `/models`. That's a one-time download - later jobs start immediately. Keep the `models` volume.
 - **"No space left" / stuck downloads.** Make sure the volume that holds `/models` has several GB free.
+- **"Signing in worked, but the credential could not be saved."** The container couldn't write your sign-in into `/config` - almost always because `/config` isn't writable by the container user (**uid 1000**), e.g. a host folder owned by a different user. Fix its ownership (`sudo chown -R 1000:1000 /path/to/config`) or use a Docker **named volume** for `/config` (the Compose example does), then run `login` again. As a fallback you can skip the interactive sign-in and set `RAY_ACCOUNT_EMAIL` + `RAY_ACCOUNT_LICENSE_KEY` in the environment instead - the license key is your Ray account key (format `TSRY-…`), shown with a copy button on the account screen in the Ray desktop app.
 - **Permissions on the media/out folders.** If Ray can't read your videos or write results, check the folder permissions on the NAS so the container can access them.
 
 ---

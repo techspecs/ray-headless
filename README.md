@@ -363,6 +363,123 @@ A settings file that exists but this user can't read (another user's file, say) 
 
 Stop the server, then run the one-line installer again (with `--server`, or `-Server` on Windows), `brew upgrade ray-headless`, `scoop update ray-headless`, or install the newer download. Settings, keys and downloads stay.
 
+### Uninstall
+
+Stop the server first (Ctrl+C in its terminal). Steps 1 to 3 remove Ray's program and commands; your settings, keys, downloads and results stay unless you also do step 4.
+
+**1. Stop it starting by itself**, if you set that up in [Keep it running](#keep-it-running).
+
+Linux:
+```sh
+systemctl --user disable --now ray-server 2>/dev/null
+rm -f ~/.config/systemd/user/ray-server.service
+systemctl --user daemon-reload
+```
+
+Turned on `loginctl enable-linger` only for Ray? `sudo loginctl disable-linger "$USER"` turns it off again.
+
+macOS:
+```sh
+launchctl bootout gui/$(id -u)/io.techspecs.ray-server 2>/dev/null
+rm -f ~/Library/LaunchAgents/io.techspecs.ray-server.plist
+```
+
+Windows: press **Win+R**, type `shell:startup` and press Enter, then delete the shortcut you made for `ray serve`.
+
+**2. Free its seat (optional).** Not using the Ray app on this computer? Run `ray logout` while Ray is still installed (with a download, from its folder, as you start it there): it signs this computer out of your Ray account, which frees its seat, and forgets the stored key. With only the CLI, `ray-cli logout` forgets the key `ray-cli login` stored. With the Ray app on this computer, skip this step: the app shares that sign-in and would be signed out too.
+
+**3. Remove the program**, the way you installed it.
+
+**One-line installer, Linux / macOS.** Its `ray-install: installed ...` line said where it put the commands and the program's files: `~/.local/bin` and `~/.local/lib`, or `/usr/local/bin` and `/usr/local/lib` when it could write there. For the server and for the CLI on its own:
+
+```sh
+rm -f ~/.local/bin/ray-cli
+rm -rf ~/.local/lib/ray-headless ~/.local/lib/ray-cli
+[ -L ~/.local/bin/ray ] && [ ! -e ~/.local/bin/ray ] && rm -f ~/.local/bin/ray
+```
+
+In `/usr/local`:
+
+```sh
+sudo rm -f /usr/local/bin/ray-cli
+sudo rm -rf /usr/local/lib/ray-headless /usr/local/lib/ray-cli
+[ -L /usr/local/bin/ray ] && [ ! -e /usr/local/bin/ray ] && sudo rm -f /usr/local/bin/ray
+```
+
+The last line of each removes the `ray` command only once it leads nowhere (the line before took its files), so another program called `ray` stays. Chose your own folders with `--dir` or `--lib-dir`? Put the ones its `installed` line named in place of these, in all three lines. The `# Ray CLI` and `export PATH=...` lines the installer may have added to `~/.zshrc`, `~/.bashrc` or `~/.profile` do no harm; delete them if you like.
+
+**One-line installer, Windows.** It put the server in `%LOCALAPPDATA%\Programs\Ray\headless`, the CLI on its own in `%LOCALAPPDATA%\Programs\Ray\bin`, and its folder on your user Path. In PowerShell:
+
+```powershell
+$p = "$env:LOCALAPPDATA\Programs\Ray"
+if (Test-Path "$p\headless\ray-server.exe") { Remove-Item "$p\headless" -Recurse -Force }
+if (Test-Path "$p\bin\ray-cli.exe") { Remove-Item "$p\bin" -Recurse -Force }
+if (-not (Get-ChildItem $p -Force -ErrorAction SilentlyContinue)) { Remove-Item $p -ErrorAction SilentlyContinue }
+# take only those two folders off your user Path
+$key = [Microsoft.Win32.Registry]::CurrentUser.CreateSubKey('Environment')
+$old = $key.GetValue('Path', '', 'DoNotExpandEnvironmentNames')
+$new = ($old -split ';' | Where-Object { $_ -and @("$p\headless", "$p\bin") -notcontains $_.TrimEnd('\') }) -join ';'
+if ($new -ne $old) { $key.SetValue('Path', $new, 'ExpandString') }
+$key.Close()
+```
+
+Then open a new terminal. The Ray app keeps its own `ray` command in another folder, `%LOCALAPPDATA%\Ray\bin` (not `Programs\Ray\bin`), with its own Path entry: these lines leave both alone.
+
+Installed with `-Dir`? Run this instead, with that folder's full path in the first line. A server folder holds only Ray, so it goes as a whole. The CLI went in next to whatever was already in its folder, so only its own files go, and the folder leaves your Path only once nothing else is left in it:
+
+```powershell
+$d = 'C:\your\folder'
+if (Test-Path "$d\ray-server.exe") { Remove-Item $d -Recurse -Force }
+Remove-Item "$d\ray-cli.exe", "$d\qt.conf", "$d\Qt6Core.dll", "$d\Qt6Network.dll", "$d\qt6" -Recurse -Force -ErrorAction SilentlyContinue
+if (-not (Get-ChildItem $d -Force -ErrorAction SilentlyContinue)) {
+  Remove-Item $d -ErrorAction SilentlyContinue
+  $key = [Microsoft.Win32.Registry]::CurrentUser.CreateSubKey('Environment')
+  $old = $key.GetValue('Path', '', 'DoNotExpandEnvironmentNames')
+  $new = ($old -split ';' | Where-Object { $_ -and $_.TrimEnd('\') -ne $d.TrimEnd('\') }) -join ';'
+  if ($new -ne $old) { $key.SetValue('Path', $new, 'ExpandString') }
+  $key.Close()
+}
+```
+
+**Homebrew:** `brew uninstall ray-headless`, then `brew untap techspecs/ray-headless`.
+
+**Scoop:** `scoop uninstall ray-headless`, then `scoop bucket rm ray`.
+
+**The `.deb`:** `sudo apt remove ray-headless`.
+
+**The `.pkg`** (macOS):
+```sh
+[ "$(readlink /usr/local/bin/ray 2>/dev/null)" = /usr/local/ray-headless/ray ] && sudo rm -f /usr/local/bin/ray
+sudo rm -rf /usr/local/ray-headless
+sudo pkgutil --forget io.techspecs.ray-headless
+```
+
+**A `.tar.gz`, `.zip` or the AppImage:** delete the folder you unpacked, or the AppImage file.
+
+**4. Ray's data and settings (optional).** What Ray downloaded, your results, its working data and its settings (see [Where files go](#where-files-go)) stay after steps 1 to 3, and so do its log and cache. For the same user, the Ray app on this computer uses them too: **keep them if you use the app**. `out` holds the subtitles Ray saved there, so copy the ones you want first (subtitles saved next to your videos stay where they are).
+
+Linux:
+```sh
+rm -rf ~/.local/share/ray/models ~/.local/share/ray/out ~/.local/share/ray/data
+rm -rf ~/.local/share/Ray/Ray ~/.cache/Ray/Ray
+rm -f ~/.config/Ray/Ray.conf
+```
+
+macOS:
+```sh
+rm -rf ~/.local/share/ray/models ~/.local/share/ray/out ~/.local/share/ray/data
+rm -rf ~/Library/"Application Support"/Ray/Ray ~/Library/Caches/Ray/Ray
+defaults delete io.techspecs.Ray 2>/dev/null
+```
+
+Windows (PowerShell):
+```powershell
+Remove-Item "$env:LOCALAPPDATA\Ray\models", "$env:LOCALAPPDATA\Ray\out", "$env:LOCALAPPDATA\Ray\data", "$env:LOCALAPPDATA\Ray\Ray" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item 'HKCU:\Software\Ray\Ray' -Recurse -ErrorAction SilentlyContinue
+```
+
+The second line on Linux and macOS, and `Ray\Ray` on Windows, are its log and cache. Delete only these folders, never all of `%LOCALAPPDATA%\Ray`: the Ray app keeps its `ray` command in `%LOCALAPPDATA%\Ray\bin`. Moved them with `RAY_MODEL_ROOT`, `RAY_DEVAPI_RESULTS_DIR` or `RAY_LOCAL_STORAGE_ROOT` (or `XDG_DATA_HOME`)? Delete those folders instead.
+
 ---
 
 ## Using it
@@ -407,6 +524,8 @@ ray-cli api jobs --url http://SERVER-IP:8787
 ```
 
 `RAY_API_URL=http://SERVER-IP:8787` saves typing `--url`, and `ray-cli --help` lists every command. (The full server installs above include it: there, type `ray` where this says `ray-cli`.)
+
+To remove it again, see [Uninstall](#uninstall): steps 2 and 3 cover the CLI on its own.
 
 ---
 

@@ -1,30 +1,47 @@
-# Ray headless - Docker Compose starter (great for a NAS or any always-on server)
+# Ray headless - Docker Compose starter (a NAS or any always-on server)
 #
-# Most NAS boxes have no usable GPU, so this uses the CPU image (works everywhere).
-# NVIDIA host? Change the image to techspecs/ray:cuda and uncomment the "deploy" block.
+# Most NAS boxes have no separate graphics card, so this uses the cpu image. It works
+# everywhere and is also the right one for integrated and Intel graphics.
+# NVIDIA card? Use techspecs/ray:cuda and uncomment the "deploy" block below.
+# Separate AMD card on a Linux host? Use techspecs/ray:vulkan and uncomment "devices".
 #
 #   1) Put this file in a folder, e.g.  /volume1/docker/ray/compose.yaml
-#   2) Run:  docker compose up -d
-#   3) Get your API key:  docker compose logs ray-server   (copy the line that prints a key)
-#   4) Open  http://YOUR-SERVER-IP:8787/  in a browser, paste the key, sign in.
+#   2) Set PUID / PGID to your NAS user (run `id` on the NAS) and point the media line
+#      at your video folder.
+#   3) Run:  docker compose up -d
+#   4) Open  http://YOUR-SERVER-IP:8787/  in a browser and sign in.
+#      The key printed in the log (docker compose logs ray-server, the line starting
+#      with ray_) is your owner key: keep it safe.
+#
+# Step-by-step guide: https://github.com/techspecs/ray-headless/blob/main/docs/nas-install.md
 
 services:
   ray-server:
-    image: techspecs/ray:cpu          # NVIDIA host -> techspecs/ray:cuda
+    image: techspecs/ray:cpu          # NVIDIA -> techspecs/ray:cuda, separate AMD card -> techspecs/ray:vulkan
     container_name: ray-server
     ports:
-      - "8787:8787"                   # dashboard + API, reachable at http://SERVER-IP:8787/
+      - "8787:8787"                   # dashboard + API at http://SERVER-IP:8787/ (change only the first number)
     environment:
-      RAY_DEVAPI_EXPOSE: "1"          # let other devices on your LAN reach it
-      # RAY_TELEMETRY: "off"          # uncomment to turn off crash reporting
+      PUID: "1000"                    # your NAS user id (Synology usually 1026, Unraid 99, QNAP 1000) - run `id`
+      PGID: "1000"                    # your NAS group id (Synology 100, Unraid 100, QNAP 100)
+      UMASK: "022"                    # "002" lets your group edit the files Ray writes
+      # RAY_APP_SIGNIN: "on"                 # sign in by approving on Ray on your computer (off by default)
+      # RAY_OWNER_EMAIL: "you@example.com"   # with RAY_APP_SIGNIN on: set the server up with your Ray app, no key
+      # RAY_AUDIO_LANGUAGE: "ja,en"          # preferred audio for videos with several audio tracks
+      # RAY_NEARBY_DEVICES: "192.168.1.20"   # your PCs, for "Use your devices" (see docs/nas-install.md)
+      # RAY_TELEMETRY: "off"                 # turn off crash reporting
+      # RAY_MCP_LISTENER: "0"                # turn off the connection for MCP apps (see docs/mcp.md)
     volumes:
-      - ray-config:/config            # your sign-in + settings  (KEEP THIS)
-      - ray-models:/models            # downloaded models, several GB (keep = warm restarts)
+      - ray-config:/config            # sign-in + settings (KEEP THIS, and keep it private)
+      - ray-models:/models            # what Ray downloads, several GB (keep = no second download)
       - ray-data:/data                # working data
-      - ./out:/out                    # finished subtitle files show up here
-      - ./media:/media:ro             # your videos, READ-ONLY so Ray never changes them; subtitles come out in ./out, NOT here
+      - ./out:/out                    # finished subtitles that aren't saved next to a video
+      - ./media:/media                # your videos. Read-write lets Ray save subtitles NEXT TO them
+                                      # (for Plex, Jellyfin and Emby); Ray never changes your videos
+                                      # and never replaces a subtitle it didn't make.
+                                      # Add ":ro" to keep every subtitle in ./out instead.
     restart: unless-stopped
-    # --- NVIDIA GPU only: uncomment to pass the GPU through ---
+    # --- NVIDIA graphics card: uncomment to pass it through (image techspecs/ray:cuda) ---
     # deploy:
     #   resources:
     #     reservations:
@@ -32,6 +49,13 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+    # --- Separate AMD graphics card on a Linux host (image techspecs/ray:vulkan) ---
+    # devices:
+    #   - /dev/dri:/dev/dri
+    #   - /dev/kfd:/dev/kfd       # lets Sunlight separate voices from the background sound
+    # --- Host networking: Ray finds your PCs by itself, and your PCs can send work here ---
+    # Remove the "ports:" lines above and uncomment:
+    # network_mode: host
 
 volumes:
   ray-config:

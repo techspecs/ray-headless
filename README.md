@@ -3,7 +3,7 @@
 Run **Ray's subtitle server** on a NAS, home server or any always-on box - the same Ray as the desktop app, without the desktop. A built-in web dashboard and a Developer API make, translate, re-time and burn in subtitles on your own hardware (Ray Local) or on Ray's servers (Ray Cloud). Runs in **Docker** or **straight on Linux, macOS or Windows**, no Docker needed (`ray-server` + `ray-cli`).
 
 - 🐳 **Docker:** [`techspecs/ray`](https://hub.docker.com/r/techspecs/ray) - `cpu` / `cuda` / `vulkan`
-- 🖥️ **No Docker?** Install the server itself on Linux, macOS or Windows: one-line installer · Homebrew · Scoop · download - [**Run the server without Docker**](#run-the-server-without-docker).
+- 🖥️ **No Docker?** Install the server itself on Linux, macOS or Windows: one-line installer · Homebrew · Scoop · Chocolatey · download - [**Run the server without Docker**](#run-the-server-without-docker).
 - 📟 **On a NAS?** Follow the step-by-step [**NAS install guide**](docs/nas-install.md) (Synology / Unraid / QNAP / TrueNAS).
 - 📖 **Everything else:** the [**container guide**](docs/docker.md).
 - 🔌 **MCP:** let Cursor and other apps that speak the Model Context Protocol make, translate and read subtitles on your server - the [**MCP guide**](docs/mcp.md).
@@ -28,9 +28,9 @@ Run **Ray's subtitle server** on a NAS, home server or any always-on box - the s
 
 ## Get running in 3 steps
 
-No graphics card needed - this uses the `cpu` image, which runs on any machine with Docker. (NVIDIA or AMD card? See [Pick your image](#pick-your-image). No Docker? See [Run the server without Docker](#run-the-server-without-docker).)
+No graphics card needed - this uses the `cpu` image, which runs on any computer with Docker and a 64-bit Intel or AMD processor. The images don't run on ARM, such as a Raspberry Pi or a NAS with an ARM processor; on a Mac with Apple silicon, [run the server without Docker](#run-the-server-without-docker) instead. (NVIDIA or AMD card? See [Pick your image](#pick-your-image). No Docker? See [Run the server without Docker](#run-the-server-without-docker).)
 
-**1. Start the server:**
+**1. Start the server.** First make a folder for Ray with a `media` folder inside it, and put your videos (or a test video) in `media`. Then open a terminal in the Ray folder and run the command there: `$PWD` is the folder you're in, so Ray reads videos from `media` and saves finished subtitles to an `out` folder next to it.
 
 ```sh
 docker run -d --name ray-server --restart unless-stopped \
@@ -150,7 +150,7 @@ The same server, dashboard and `ray-cli` as the Docker image, installed straight
 | | **Full server:** the `ray` command - `ray serve`, the dashboard and the CLI | **Client only:** `ray-cli`, no server, no dashboard |
 |---|---|---|
 | One-line installer | with `--server` (`-Server` on Windows) | without it ([Install only the CLI](#install-only-the-cli)) |
-| Homebrew, Scoop | yes | - |
+| Homebrew, Scoop, Chocolatey | yes | - |
 | [Releases](../../releases) page | the `ray-headless` files (`.tar.gz`, `.zip`, `.deb`, `.pkg`) and `Ray-...-x86_64.AppImage` | the `ray-cli` files (`.tar.gz`, `.zip`) |
 
 With the full server, `ray serve` starts it and `ray api ...` does everything `ray-cli` does (the one-line installer adds a `ray-cli` command too).
@@ -181,6 +181,11 @@ brew install techspecs/ray-headless/ray-headless
 ```powershell
 scoop bucket add ray https://github.com/techspecs/ray-headless
 scoop install ray-headless
+```
+
+**Chocolatey** (Windows; this is a beta, so add `--pre`):
+```powershell
+choco install ray-headless --pre
 ```
 
 **Or download it** from the [Releases](../../releases) page (`<version>` is the release, like `4.0.16`):
@@ -361,7 +366,7 @@ A settings file that exists but this user can't read (another user's file, say) 
 
 ### Update
 
-Stop the server, then run the one-line installer again (with `--server`, or `-Server` on Windows), `brew upgrade ray-headless`, `scoop update ray-headless`, or install the newer download. Settings, keys and downloads stay.
+Stop the server, then run the one-line installer again (with `--server`, or `-Server` on Windows), `brew upgrade ray-headless`, `scoop update ray-headless`, `choco upgrade ray-headless --pre`, or install the newer download. Settings, keys and downloads stay.
 
 ### Uninstall
 
@@ -444,6 +449,8 @@ if (-not (Get-ChildItem $d -Force -ErrorAction SilentlyContinue)) {
 **Homebrew:** `brew uninstall ray-headless`, then `brew untap techspecs/ray-headless`.
 
 **Scoop:** `scoop uninstall ray-headless`, then `scoop bucket rm ray`.
+
+**Chocolatey:** `choco uninstall ray-headless`.
 
 **The `.deb`:** `sudo apt remove ray-headless`.
 

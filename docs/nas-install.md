@@ -14,13 +14,13 @@ When you're finished you'll have:
 
 ## What you'll need
 
-- A NAS or server that can run **Docker** (containers). Most modern NAS boxes can: Synology (DSM 7.2 or later: **Container Manager**), QNAP (**Container Station**), Unraid, TrueNAS SCALE.
+- A NAS or server with a **64-bit Intel or AMD processor** that can run **Docker** (containers). Most modern NAS boxes can: Synology (DSM 7.2 or later: **Container Manager**), QNAP (**Container Station**), Unraid, TrueNAS SCALE. Ray doesn't run on NAS boxes with an ARM processor yet; your NAS maker's specification page names the processor.
 - About **10 GB of free space** for what Ray downloads the first time.
 - Your **Ray account** (the same one you use in the Ray app).
 - Handy: **Ray open on a Windows PC or Mac** on the same network, signed in to your Ray account, to connect the NAS to that account with one approval. (Without one, an emailed code does it.)
 - Your NAS's **IP address** on your network, like `192.168.1.50`. Your NAS's control panel shows it (Synology: Control Panel > Network > Network Interface; QNAP: Control Panel > Network & Virtual Switch; Unraid: top of the dashboard), and so does your router's list of devices.
 
-> Most NAS boxes have no graphics card Ray can use, so this guide uses the **`cpu`** image, which works on everything. Have an NVIDIA card or a separate AMD card in the box? See [GPU acceleration](#gpu-acceleration). Have a PC with a graphics card on your network? See [Use your PC's graphics card](#use-your-pcs-graphics-card-your-devices).
+> Most NAS boxes have no graphics card Ray can use, so this guide uses the **`cpu`** image, which needs no graphics card. Have an NVIDIA card or a separate AMD card in the box? See [GPU acceleration](#gpu-acceleration). Have a PC with a graphics card on your network? See [Use your PC's graphics card](#use-your-pcs-graphics-card-your-devices).
 
 ---
 
@@ -106,7 +106,7 @@ What the lines mean:
 
 | Line | Meaning |
 |---|---|
-| `image: techspecs/ray:cpu` | The Ray image that works on every NAS. |
+| `image: techspecs/ray:cpu` | The Ray image for any NAS with an Intel or AMD processor; no graphics card needed. |
 | `"8787:8787"` | The dashboard's port. Only change the **first** number, if 8787 is taken (see [Using a different port](#using-a-different-port)). |
 | `PUID` / `PGID` / `UMASK` | Who owns the files Ray writes (see [File ownership](#file-ownership--permissions)). |
 | `ray-config`, `ray-models`, `ray-data` | Ray's own storage: your sign-in and settings, what it downloads, working data. **Keep them.** |
@@ -569,7 +569,7 @@ It's off until an owner turns it on in **People** (or sets `RAY_APP_SIGNIN`). Ra
 
 ## GPU acceleration
 
-The `cpu` image works everywhere. For more speed on a box with a supported graphics card:
+The `cpu` image works on any Intel or AMD processor, with no graphics card. For more speed on a box with a supported graphics card:
 
 - **NVIDIA:** use `techspecs/ray:cuda` and pass the card through. In compose:
 

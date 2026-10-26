@@ -8,21 +8,21 @@
 class RayHeadless < Formula
   desc "On-device subtitles, translation, narration, and stem separation"
   homepage "https://techspecs.io/ray"
-  version "4.0.16-beta.1"
+  version "4.0.17-beta.1"
   # Ray is proprietary software; there is no OSI license identifier to declare.
   license :cannot_represent
 
   on_macos do
     on_arm do
-      url "https://github.com/techspecs/ray-headless/releases/download/4.0.16-beta.1/ray-headless-macos-arm64-4.0.16-beta.1.tar.gz"
-      sha256 "3f992d65455827785b28bca334e303cf93fd9cc55084b782fd4264ae8c8961ce"
+      url "https://github.com/techspecs/ray-headless/releases/download/4.0.17-beta.1/ray-headless-macos-arm64-4.0.17-beta.1.tar.gz"
+      sha256 "ffe9114c2703e2c03494d4d5418c67b086aecda66d581fe78cebaee2f4a2403d"
     end
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/techspecs/ray-headless/releases/download/4.0.16-beta.1/ray-headless-linux-x64-4.0.16-beta.1.tar.gz"
-      sha256 "516f1f1900154cd7978f06f799f1153e9c19ca95d533d1d5a45879393ed096ba"
+      url "https://github.com/techspecs/ray-headless/releases/download/4.0.17-beta.1/ray-headless-linux-x64-4.0.17-beta.1.tar.gz"
+      sha256 "34eefcf36b5cda89c57e682c99cb409e9c86479b5b411c7246b0c5751d222817"
     end
     # NOTE: linux-arm64 bundles are not published yet. Add an on_arm block here
     # once packaging/cli/build-cli-bundle.sh emits a linux-arm64 artifact.

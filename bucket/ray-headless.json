@@ -6,7 +6,7 @@
         "your release host. x64 only. When adding to a Scoop bucket, name the file 'ray-headless.json'.",
         "Install:  scoop install ray-headless   (or:  scoop install <bucket>/ray-headless )"
     ],
-    "version": "4.0.16-beta.1",
+    "version": "4.0.17-beta.1",
     "description": "Ray headless CLI - on-device subtitles, translation, narration, and stem separation.",
     "homepage": "https://rayplayer.com",
     "license": "Proprietary",
@@ -17,8 +17,8 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://github.com/techspecs/ray-headless/releases/download/4.0.16-beta.1/ray-headless-windows-x64-4.0.16-beta.1.zip",
-            "hash": "d40e21d1d1f93e92575b578caa997232d0a5b23b2728fabbc937d69256ce4f01",
+            "url": "https://github.com/techspecs/ray-headless/releases/download/4.0.17-beta.1/ray-headless-windows-x64-4.0.17-beta.1.zip",
+            "hash": "91cf86c6c2282b830bbe43628b7d329cae4579b5ef56ace4dddb5f29fd22ece1",
             "extract_dir": "ray-headless-windows-x64"
         }
     },
@@ -40,5 +40,6 @@
                 "extract_dir": "ray-headless-windows-x64"
             }
         }
-    }
+    },
+    "depends": "extras/vcredist2022"
 }

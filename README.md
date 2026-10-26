@@ -179,6 +179,7 @@ brew install techspecs/ray-headless/ray-headless
 
 **Scoop** (Windows):
 ```powershell
+scoop bucket add extras         # once: Microsoft's Visual C++ runtime comes from there
 scoop bucket add ray https://github.com/techspecs/ray-headless
 scoop install ray-headless
 ```

@@ -337,7 +337,8 @@ Ray subtitles every video in a folder, and each new one that arrives (network sh
 7. **Audio language** and **More than one audio track** for videos with several audio tracks, **Translate from subtitles in** and **More than one subtitle inside a video** for videos that already carry subtitles inside them (all optional; when the language doesn't decide, a new folder uses the video's default, or choose **Ask me in the Jobs list**).
 8. **Save subtitles**: **Next to each video - for Plex, Jellyfin and Emby** (needs a read-write mount) or **In the output folder**.
 9. **Also subtitle the videos already in this folder**, or only new arrivals.
-10. **Add folder**.
+10. Optional: **Retry failed files** after 1, 3, 6, 12 or 24 hours, at most 3 times, for failures that can pass (a lost connection, a busy service, a share that didn't answer). The folder's row shows the next try ("Retry 2 of 3 in 3 h").
+11. **Add folder**.
 
 Ray checks the folder first: it must exist inside the container, be readable, and be writable for library mode. In Docker it must be inside a volume you shared with the container (like `/media/movies` in a `/media` volume), or be a folder that holds such volumes (like `/media` with `/media/movies` and `/media/tv` mounted). Ray's own folders, the output folder, and a folder that is already watched or overlaps one are refused. A folder saved before these checks keeps watching, and the tab says what to change. Each folder can be paused, changed, rescanned and removed. A folder that goes missing (a share that isn't mounted yet) shows as missing and is picked up again when it comes back. Removing a folder keeps its history, so adding it back never redoes finished videos.
 
@@ -364,7 +365,7 @@ docker run -d --name ray-watch -e PUID=1000 -e PGID=1000 \
            {"dir":"/media/lectures","languages":["de"],"tasks":["create","translate"],"output":"out"}]
   ```
 
-  Optional keys: `tasks`, `output` (`beside` or `out`), `target` (`local` or `cloud`), `fallback_to_cloud`, `run_on` (`server`, `auto` or `devices`), `audio_language`, `subtitle_source_language`, `process_existing`, `enabled`.
+  Optional keys: `tasks`, `output` (`beside` or `out`), `target` (`local` or `cloud`), `fallback_to_cloud`, `run_on` (`server`, `auto` or `devices`), `audio_language`, `subtitle_source_language`, `process_existing`, `enabled`, `retry_failed_after_hours` (`0` off, or `1`, `3`, `6`, `12` or `24`).
 
 Folders set at startup show in the dashboard as **Set at startup** and can only be changed where the container starts. `RAY_WATCH_EDITABLE=0` locks the whole list. Watch jobs appear in the Jobs list next to other jobs.
 
@@ -493,6 +494,28 @@ From a terminal: `ray-cli api connections add sonarr --folder /media/tv --langua
 
 ---
 
+## Plex, Jellyfin and Emby
+
+Ray can watch your Plex, Jellyfin and Emby libraries and add subtitles to every new video, so they show up in the library like any other subtitle. This is **Homewide**. It is on by default; `RAY_ENABLE_HOMEWIDE=0` turns it off on this server.
+
+Homewide works with this server's Ray account (**This server's Ray account** on **Create**). Until that account includes Homewide, Ray looks at no media server and makes no subtitles for them, and the **Servers** tab says what to get. Ray checks the account every 15 minutes, and once a minute while **Servers** is open.
+
+### Connect a server
+
+1. Open **Servers** (owners only). Jellyfin and Emby servers on the server's network show up there by themselves: choose **Connect**. For Plex, choose **Sign in with Plex**. A server that isn't listed connects by its address (keep anything after the port, like `/jellyfin`).
+2. Finding servers by itself needs the container **directly on your network**: host networking (`network_mode: host`) or macvlan (Unraid br0, QNAP Bridge). On Docker's default bridge network (`-p 8787:8787`) **Servers** opens on **Add by address**: type the address you open the media server at, for example `http://192.168.1.50:8096`. Plex is found through your Plex account either way.
+3. Choose the libraries and the languages. New videos get subtitles from then on; **Subtitle what's already here** does the videos a library already has.
+
+Ray saves the subtitle next to the video when it can reach the video's folder (for Emby it must: mount the media folder in Ray's container, and pair the folders under the server's settings when Emby and Ray name them differently). Otherwise Plex and Jellyfin receive it from Ray. Ray never downloads your videos. Without the optional webhook, Ray looks for new videos every 5 minutes.
+
+New videos are made the way this server's Ray account says: with Ray Cloud on a plan that includes it, otherwise with Ray Local. When Ray Cloud's allowance runs out, new videos wait instead of failing.
+
+**Connect each media server in one Ray only.** When the same Plex, Jellyfin or Emby server is connected in two Rays (two servers, or the Ray app and this container), both make subtitles for every new video, and Ray Cloud is used twice.
+
+Servers can also be set where the container starts, with `RAY_HOMEWIDE_SERVERS` (JSON) and each server's token in its own `RAY_HOMEWIDE_TOKEN_<NAME>` variable; `RAY_HOMEWIDE_EDITABLE=0` locks the list. `docker run --rm techspecs/ray:cpu ray-server --help` shows the format. From a terminal: `ray-cli api homewide` (servers and what they are doing) and `ray-cli api homewide sync` (look for new videos now).
+
+---
+
 ## Videos with several audio or subtitle tracks
 
 An anime with Japanese audio and an English dub, a film with a commentary track: Ray makes the subtitles from **one** audio track per job, and never picks one by itself:
@@ -525,6 +548,25 @@ Ray Cloud makes subtitles on Ray's servers - handy on a small NAS. It uses the s
 - **Only when needed:** keep **Ray Local** and tick **Use Ray Cloud if Ray Local can't** (API: `"fallback_to_cloud": true`). A video goes to Ray Cloud only when this server can't make its subtitles.
 
 When Ray Cloud doesn't offer a quality right now, the dashboard greys it out and switches to one that is available.
+
+Ray Cloud jobs wait instead of failing:
+
+- **When the daily limit or the allowance is used up**, the job waits (**Waiting for Ray Cloud**) and goes again by itself after the reset or once you add credit; a used-up free trial waits for credit. Nothing is uploaded while it waits. **Check now** (or `ray-cli api retry JOB_ID`) asks again.
+- **When the connection to Ray Cloud drops** during a job, the job waits for the connection or for Ray Cloud's answer and carries on. After a restart Ray follows the same Ray Cloud job, with no new upload.
+- **Once after the update**, Ray Cloud may ask you to confirm it on this server: a banner with **Confirm now** holds Ray Cloud jobs until then, and they go by themselves, oldest first. Nobody is signed out.
+
+Waiting jobs stay with the Ray account they were made for: after **Switch account**, they don't run on the other account. A plan without Ray Cloud refuses a Ray Cloud job before anything is uploaded.
+
+---
+
+## Remote help
+
+When a job fails in **Ray Local** on this server, Ray support can connect to the server to look into it, as remote help works in the Ray app. Remote help is for Ray Local problems only.
+
+- Owners find **Remote help** in **Help** once Ray support offers it. **Ask for remote help** shows a code to give Ray support by email or chat. In **Jobs**, the newest job that failed in Ray Local has **Get remote help**.
+- Only someone at the server's own terminal can let Ray support in; the dashboard and an API key never can. When they connect, run `docker exec -it ray-server ray-cli support approve` (it shows who is connecting and what they can do, then asks). Or ask from the terminal with `docker exec -it ray-server ray-cli support request`: your yes there lets them in when they connect.
+- Once let in, Ray support can see the server's details, read Ray's logs from a few minutes before they connected until remote help ends, and run test jobs (**Ray support's test** in **Jobs**). They can't change Ray's settings. **End remote help** ends it at any time; a restart ends a request.
+- `RAY_SUPPORT_SESSIONS=0` turns remote help off on this server.
 
 ---
 
@@ -642,7 +684,7 @@ docker run --rm \
 
 Next to a running server, a one-shot run uses the server's user by itself: without `PUID` / `PGID` it runs as the owner of `/config`, and it never takes `/config`, `/models`, `/data` or `/out` away from another user. If you set `PUID` / `PGID` here, use the same values as your server.
 
-The subtitle is saved in `/out` named after the video (`movie.es.srt`). Options: `--language CODE`, `--quality fast|best`, `--format srt|vtt|json`, `--output FILE` (an extra copy), `--audio-track ID` or `--audio-language CODES`. `tracks FILE` lists a video's audio and subtitle tracks.
+The subtitle is saved in `/out` named after the video (`movie.es.srt`). Several languages make one subtitle each: `--language bs,sr-Latn` saves `movie.bs.srt` and `movie.sr-Latn.srt`. A Ray Cloud job of a one-shot run fails with the reset time instead of waiting for the allowance. Options: `--language CODE`, `--quality fast|best`, `--format srt|vtt|json`, `--output FILE` (an extra copy), `--audio-track ID` or `--audio-language CODES`. `tracks FILE` lists a video's audio and subtitle tracks.
 
 `generate` runs its own private server inside the container (loopback port `18787`, `RAY_GENERATE_PORT`) that nothing outside can reach, and never touches watch folders, so it is safe to share `/config` with a running server.
 
@@ -650,7 +692,7 @@ The subtitle is saved in `/out` named after the video (`movie.es.srt`). Options:
 
 ## Removing finished jobs
 
-The Jobs list is kept while the server runs and starts empty after a restart (saved files stay where they are). **Remove** a finished job, or **Clear finished** (completed, failed and canceled jobs; running jobs are never touched). Both ask first, with **Also delete the result files from the server** (off by default). Only files Ray made for those jobs are deleted, and only while unchanged: your videos, subtitles you provided and files changed since are always kept. Removing a watch folder job doesn't make the folder process that video again.
+The Jobs list is kept across restarts (up to 5000 jobs in `/config`; earlier ones show under **Before the restart**). A job that was running when the server stopped comes back as failed (**Stopped when this server stopped**) and is never run again by itself. **Remove** a finished job, or **Clear finished** (completed, failed and canceled jobs; running jobs are never touched). Both ask first, with **Also delete the result files from the server** (off by default). Only files Ray made for those jobs are deleted, and only while unchanged: your videos, subtitles you provided and files changed since are always kept. Removing a watch folder job doesn't make the folder process that video again.
 
 Over HTTP: `DELETE /v1/jobs/{id}?delete_result=1` and `POST /v1/jobs/clear?delete_results=1`.
 
@@ -714,7 +756,7 @@ Good to know:
 
 ## GPU passthrough
 
-- **`cuda`**: install the NVIDIA Container Toolkit on a Linux host and run with `--gpus all`; on Windows, Docker Desktop with WSL2 and `--gpus all`. Compose:
+- **`cuda`**: install the NVIDIA Container Toolkit on a Linux host and run with `--gpus all`; on Windows, Docker Desktop with WSL2 and `--gpus all`. Sunlight separates voices from the background sound on the NVIDIA card too; the first such job downloads what it needs (about 2 GB). Compose:
 
   ```yaml
       deploy:
@@ -777,6 +819,11 @@ The most useful ones. `docker run --rm techspecs/ray:cpu ray-server --help` list
 | `RAY_NEARBY_WORKER_SUBNETS` | unset | Other private networks whose computers may send work here. |
 | `RAY_DISABLE_NEARBY_FANOUT` | unset | `1` keeps every job on this server. Older images set it themselves: remove it to use your devices. |
 | `RAY_DEVICE_NAME` | unset | The name your Ray apps show for this server. Unset: the host name when they approve a sign-in (in a container, its id), and "Ray Server" plus what it runs on in their Use your devices lists. |
+| `RAY_ENABLE_HOMEWIDE` | on | `0`, `false`, `no` or `off` turns [Plex, Jellyfin and Emby](#plex-jellyfin-and-emby) (Homewide) off on this server. |
+| `RAY_HOMEWIDE_SERVERS` | unset | Media servers set where the container starts, as JSON; each token goes in its own `RAY_HOMEWIDE_TOKEN_<NAME>` variable. A server entry that can't work stops the server with a message. |
+| `RAY_HOMEWIDE_EDITABLE` | editable | `0` locks the media server list. |
+| `RAY_HOMEWIDE_PROCESSING` | `account` | How new videos are made: `account` (as the server's Ray account says), `local` or `cloud`. |
+| `RAY_SUPPORT_SESSIONS` | on | `0`, `false`, `off` or `no` turns [remote help](#remote-help) off on this server. |
 | `RAY_TELEMETRY` | on | `off` turns crash reporting off. |
 | `RAY_GENERATE_PORT` | `18787` | Loopback port of the one-shot `generate` server. |
 | `RAY_OWNER_EMAIL` | unset | With `RAY_APP_SIGNIN` `on` or `local`: the Ray account that may set up a server that isn't connected yet with **Sign in with your Ray app**, no key needed. No effect while app sign-in is off, or once the server is connected. |
@@ -804,7 +851,7 @@ Times in API answers are ISO 8601 in UTC (`2026-09-27T14:03:11Z`).
 
 A subtitle file given as `file_path` for a job that needs the video's sound (making subtitles, ReTime, burn-in) is refused with `400` and `subtitle_file_not_media`. To translate it, send `"subtitle_source": "translate"` with `subtitle_path` set to that file and a `target_language`.
 
-**ray-cli** is in the image (`docker exec -u 1000:1000 -e RAY_API_KEY=ray_... ray-server ray-cli api jobs`, with your `PUID`:`PGID`) and installs on its own, without the server ([Install only the CLI](../README.md#install-only-the-cli)). Point it at a server with `RAY_API_URL=http://SERVER-IP:8787` and `RAY_API_KEY=ray_...`; an address without `/v1` or `/v4` gets `/v1`. `RAY_API_KEY` is `ray-cli`'s setting, the key it sends: the server never reads it, and takes its own keys from the first start, **People** or `RAY_DEVAPI_KEY_HASH`. Useful commands: `api submit FILE --language en [--wait]`, `api jobs`, `api download JOB_ID`, `api tracks FILE`, `api browse [FOLDER]`, `api favorites`, `api keys`, `api devices`, `api connections`.
+**ray-cli** is in the image (`docker exec -u 1000:1000 -e RAY_API_KEY=ray_... ray-server ray-cli api jobs`, with your `PUID`:`PGID`) and installs on its own, without the server ([Install only the CLI](../README.md#install-only-the-cli)). Point it at a server with `RAY_API_URL=http://SERVER-IP:8787` and `RAY_API_KEY=ray_...`; an address without `/v1` or `/v4` gets `/v1`. `RAY_API_KEY` is `ray-cli`'s setting, the key it sends: the server never reads it, and takes its own keys from the first start, **People** or `RAY_DEVAPI_KEY_HASH`. Useful commands: `api submit FILE --language en [--wait]`, `api jobs`, `api retry JOB_ID`, `api diagnostics JOB_ID`, `api download JOB_ID`, `api homewide`, `support`, `api tracks FILE`, `api browse [FOLDER]`, `api favorites`, `api keys`, `api devices`, `api connections`.
 
 **MCP apps:** the server also answers apps that speak MCP (the Model Context Protocol) at `/v1/mcp`, behind the same keys, so Cursor and similar apps can make, translate and read subtitles here. `ray-cli api mcp` connects an app that starts a command (in Docker: `docker exec -i -u 1000:1000 ray-server ray-cli api mcp`, with your `PUID`:`PGID`); `RAY_MCP_LISTENER=0` turns it off. Set-up for each app: [MCP guide](mcp.md).
 
@@ -818,7 +865,14 @@ Pull the new image and recreate the container; `/config`, `/models` and `/data` 
 docker compose pull && docker compose up -d
 ```
 
-Coming from **4.0.15-beta.1 or earlier**, note:
+Coming from **4.0.16-beta.1**, note:
+
+- **Plex, Jellyfin and Emby (Homewide) and remote help are on** after the update. Neither does anything until an owner connects a media server or asks for remote help. To keep them off, set `RAY_ENABLE_HOMEWIDE=0` and `RAY_SUPPORT_SESSIONS=0`.
+- **Ray Cloud may ask you to confirm it once** on this server; Ray Cloud jobs wait meanwhile instead of failing, and nobody is signed out.
+- **Keep `/config` as a volume**: the Jobs list and Ray Cloud jobs that wait for the allowance are kept there across restarts.
+- **Scripts:** a Ray Cloud job on a plan without Ray Cloud is refused when it is added (`403 cloud_not_entitled`), and a job that waits for the allowance stays `queued` (`waiting_for_allowance`) instead of failing. `GET /v1/jobs` also lists jobs from before the last restart (`"from_before_restart": true`).
+
+Coming from **4.0.15-beta.1 or earlier**, also note:
 
 - **Ray now runs as `PUID`:`PGID` (default `1000:1000`) and gives `/config`, `/models` and `/data` to that user at start.** If you had made those folders belong to another account (and writable for everyone), set `PUID` / `PGID` to that account. Started with `--user`? Nothing changes.
 - **Results are named after the video** (`Movie.en.srt`), not after the job id, with two-letter language codes whenever the language has one (`Movie.nl.srt`, and `Movie.zh.srt` for Chinese rather than `.cmn`). Files from earlier images are left as they are.
@@ -835,7 +889,7 @@ Coming from **4.0.15-beta.1 or earlier**, note:
 ## Tags
 
 - `techspecs/ray:cpu`, `techspecs/ray:cuda`, `techspecs/ray:vulkan` - the latest release of each image.
-- `techspecs/ray:<version>-<variant>` (for example `4.0.16-beta.1-cpu`) - a fixed release you can pin.
+- `techspecs/ray:<version>-<variant>` (for example `4.0.17-beta.1-cpu`) - a fixed release you can pin.
 
 ---
 

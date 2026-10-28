@@ -14,7 +14,7 @@ When you're finished you'll have:
 
 ## What you'll need
 
-- A NAS or server with a **64-bit Intel or AMD processor** that can run **Docker** (containers). Most modern NAS boxes can: Synology (DSM 7.2 or later: **Container Manager**), QNAP (**Container Station**), Unraid, TrueNAS SCALE. Ray doesn't run on NAS boxes with an ARM processor yet; your NAS maker's specification page names the processor.
+- A NAS or server with a **64-bit Intel or AMD processor** that can run **Docker** (containers). Synology DSM 7.2 or later has **Container Manager**; DSM 6.2 can use the Docker package and the terminal command in step 4. QNAP, Unraid and TrueNAS SCALE also work. Ray doesn't run on NAS boxes with an ARM processor yet; your NAS maker's specification page names the processor.
 - About **10 GB of free space** for what Ray downloads the first time.
 - Your **Ray account** (the same one you use in the Ray app).
 - Handy: **Ray open on a Windows PC or Mac** on the same network, signed in to your Ray account, to connect the NAS to that account with one approval. (Without one, an emailed code does it.)
@@ -102,6 +102,8 @@ volumes:
   ray-data:
 ```
 
+Use the code block's copy button and save it as plain text. The first line of the saved file must be `services:`. If it starts with `{`, it is not the Compose file above; copy the YAML block again. Do not include the code fence lines in the file.
+
 What the lines mean:
 
 | Line | Meaning |
@@ -134,7 +136,17 @@ cd /volume1/docker/ray        # Ray's folder from step 3
 sudo docker compose up -d
 ```
 
-(Older systems without `docker compose`: `sudo docker-compose up -d`.)
+If your NAS has `docker-compose` instead, use `sudo docker-compose -f compose.yaml up -d` so it opens the file you made in step 3. If that older Compose version cannot read the file, use the Docker command below.
+
+### Older Synology (DSM 6.2) without current Compose
+
+On an older Synology (DSM 6.2) whose docker-compose is out of date, you can skip the compose file and run this instead. Change `1026` and `100` to your PUID and PGID from step 2, and change `/volume1/video` if your videos are elsewhere:
+
+```sh
+sudo docker run -d --name ray-server --restart unless-stopped -p 8787:8787 -e PUID=1026 -e PGID=100 -e UMASK=002 -v ray-config:/config -v ray-models:/models -v ray-data:/data -v /volume1/docker/ray/out:/out -v /volume1/video:/media techspecs/ray:cpu
+```
+
+No YAML file is needed. Get the first-start key with `sudo docker logs ray-server`, then open `http://<NAS-IP>:8787/` in your browser and continue at step 5. Do not start a second `ray-server` if you already started one with Compose.
 
 ### Synology (DSM 7.2 or later - Container Manager)
 
@@ -439,6 +451,7 @@ sudo docker compose up -d
 ```
 
 - **Synology (Container Manager project):** the two commands above work in the project's folder (`/volume1/docker/ray`).
+- **Synology DSM 6.2 with the `docker run` command:** run `sudo docker pull techspecs/ray:cpu`, then `sudo docker stop ray-server` and `sudo docker rm ray-server`. Run the same command from step 4 again, with your PUID, PGID and media path. Keep the named volumes; they hold your account and downloads.
 - **Unraid:** Docker tab > **Check for Updates** > **apply update** on `ray-server`.
 - **QNAP (Container Station application):** download the new image first (`sudo docker pull techspecs/ray:cpu`), then recreate the `ray` application in Container Station so it starts from the new image.
 
